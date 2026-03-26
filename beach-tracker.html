@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Beach Ready">
+<meta name="theme-color" content="#0a0a0f">
+<title>Beach Ready</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #12121a;
+    --bg3: #1a1a24;
+    --card: #16161f;
+    --border: rgba(255,255,255,0.07);
+    --accent: #e8f04a;
+    --accent2: #4af0b8;
+    --accent3: #f04a8a;
+    --text: #f0ede6;
+    --muted: rgba(240,237,230,0.45);
+    --faint: rgba(240,237,230,0.12);
+    --r: 14px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 52px 20px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .header-row { display: flex; justify-content: space-between; align-items: flex-end; }
+  .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 1px; color: var(--text); line-height: 1; }
+  .header-title span { color: var(--accent); }
+  .days-pill {
+    background: var(--accent);
+    color: #0a0a0f;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  .header-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .phase-bar { margin-top: 12px; height: 4px; background: var(--faint); border-radius: 2px; overflow: hidden; }
+  .phase-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.6s ease; }
+
+  /* SCROLL AREA */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 16px calc(80px + var(--safe-bottom));
+  }
+
+  /* BOTTOM NAV */
+  .nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: calc(64px + var(--safe-bottom));
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    padding-top: 8px;
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 0;
+  }
+  .nav-icon { font-size: 22px; line-height: 1; transition: transform 0.15s; }
+  .nav-label { font-size: 10px; color: var(--muted); font-weight: 400; transition: color 0.15s; }
+  .nav-btn.active .nav-icon { transform: scale(1.1); }
+  .nav-btn.active .nav-label { color: var(--accent); font-weight: 500; }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  /* TODAY CARD */
+  .today-hero {
+    background: linear-gradient(135deg, #1a1f0a 0%, #12121a 100%);
+    border: 1px solid rgba(232,240,74,0.2);
+    border-radius: var(--r);
+    padding: 20px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .today-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(232,240,74,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .today-day-type {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .today-desc { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .today-exercises { display: flex; flex-direction: column; gap: 8px; }
+  .exercise-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .exercise-name { font-size: 14px; font-weight: 400; }
+  .exercise-sets { font-size: 12px; color: var(--muted); }
+  .exercise-check {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .exercise-check.done {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0a0a0f;
+  }
+
+  /* MACRO TRACKER */
+  .macro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .macro-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .macro-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; line-height: 1; }
+  .macro-target { font-size: 11px; color: var(--muted); }
+  .macro-ring { position: relative; width: 56px; height: 56px; margin: 0 auto 8px; }
+  .macro-ring svg { transform: rotate(-90deg); }
+  .macro-ring-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+
+  /* INPUT ROW */
+  .input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .food-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .food-input:focus { border-color: rgba(232,240,74,0.4); }
+  .food-input::placeholder { color: var(--muted); }
+  .add-btn {
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .food-log { display: flex; flex-direction: column; gap: 6px; }
+  .food-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg3);
+    border-radius: 8px;
+    font-size: 13px;
+    animation: slideIn 0.2s ease;
+  }
+  .food-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 0 4px; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* MACROS BAR */
+  .macro-bar-row { margin-bottom: 10px; }
+  .macro-bar-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+  .macro-bar-track { height: 6px; background: var(--faint); border-radius: 3px; overflow: hidden; }
+  .macro-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+
+  /* SCHEDULE VIEW */
+  .phase-section { margin-bottom: 20px; }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .phase-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .phase-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; }
+  .phase-dates { font-size: 12px; color: var(--muted); margin-top: -2px; }
+  .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .day-pill {
+    border-radius: 8px;
+    padding: 6px 2px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 500;
+  }
+  .day-dow { color: var(--muted); margin-bottom: 3px; font-size: 9px; }
+  .day-name { font-size: 9px; font-weight: 500; }
+  .dp-push { background: rgba(74,130,240,0.15); color: #7ab4f5; }
+  .dp-pull { background: rgba(74,240,184,0.12); color: #4af0b8; }
+  .dp-core { background: rgba(240,74,138,0.12); color: #f04a8a; }
+  .dp-rest { background: rgba(255,255,255,0.05); color: var(--muted); }
+  .dp-cardio { background: rgba(232,240,74,0.1); color: var(--accent); }
+
+  /* WORKOUT DETAIL */
+  .exercise-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .ex-item {
+    padding: 10px 14px;
+    background: var(--bg3);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .ex-name { font-size: 14px; font-weight: 400; }
+  .ex-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* PROGRESS */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stat-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; line-height: 1; color: var(--accent); }
+  .stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .streak-banner {
+    background: linear-gradient(135deg, rgba(232,240,74,0.1), rgba(74,240,184,0.08));
+    border: 1px solid rgba(232,240,74,0.2);
+    border-radius: var(--r);
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .streak-num { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--accent); line-height: 1; }
+  .streak-label { font-size: 13px; color: var(--muted); }
+
+  /* NOTES */
+  .notes-area {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    min-height: 100px;
+  }
+  .notes-area:focus { border-color: rgba(232,240,74,0.3); }
+
+  /* SECTION HEADER */
+  .section-h {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-h::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* INSTALL BANNER */
+  .install-banner {
+    background: var(--bg3);
+    border: 1px solid rgba(232,240,74,0.25);
+    border-radius: var(--r);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    display: none;
+  }
+  .install-banner.show { display: block; }
+  .install-banner strong { color: var(--accent); }
+
+  /* TOGGLE ROW */
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .toggle-row:last-child { border-bottom: none; }
+
+  /* SCROLLBAR */
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* Animations */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .view.active .card, .view.active .today-hero, .view.active .streak-banner {
+    animation: fadeUp 0.25s ease both;
+  }
+  .view.active .card:nth-child(2) { animation-delay: 0.05s; }
+  .view.active .card:nth-child(3) { animation-delay: 0.1s; }
+  .view.active .card:nth-child(4) { animation-delay: 0.15s; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-row">
+      <div>
+        <div class="header-title">BEACH <span>READY</span></div>
+        <div class="header-sub" id="header-sub">Loading...</div>
+      </div>
+      <div class="days-pill" id="days-pill">— days left</div>
+    </div>
+    <div class="phase-bar"><div class="phase-bar-fill" id="progress-bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- TODAY VIEW -->
+    <div id="view-today" class="view active">
+      <div class="today-hero">
+        <div class="today-day-type" id="today-type">REST</div>
+        <div class="today-desc" id="today-desc">Recovery day — walk, stretch, hydrate.</div>
+        <div class="today-exercises" id="today-exercises"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Today's Macros</div>
+        <div class="macro-bar-row">
+          <div class="macro-bar-header"><span style="color:#7ab4f5">Protein</span><span id="pb-label">0 / 170g</span></div>
+          <div class="macro-bar-track"><div class="macro-bar-fill" id="pb-protein" style="width:0%;background:#7ab4f5"></div></div>
+        </div>
+        <div class="macro-bar-row">
+          <div class="macro-bar-header"><span style="color:#4af0b8">Carbs</span><span id="pb-carbs-label">0 / 240g</span></div>
+          <div class="macro-bar-track"><div class="macro-bar-fill" id="pb-carbs" style="width:0%;background:#4af0b8"></div></div>
+        </div>
+        <div class="macro-bar-row">
+          <div class="macro-bar-header"><span style="color:#f0a84a">Fats</span><span id="pb-fats-label">0 / 70g</span></div>
+          <div class="macro-bar-track"><div class="macro-bar-fill" id="pb-fats" style="width:0%;background:#f0a84a"></div></div>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--muted);text-align:center">Log food in the Nutrition tab ↓</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Workout Notes</div>
+        <textarea class="notes-area" id="today-notes" placeholder="How did today feel? Log weights, reps, anything notable..." rows="4"></textarea>
+      </div>
+    </div>
+
+    <!-- SCHEDULE VIEW -->
+    <div id="view-schedule" class="view">
+      <div class="phase-section">
+        <div class="phase-header">
+          <span class="phase-tag" style="background:rgba(74,130,240,0.15);color:#7ab4f5">Phase 1</span>
+          <div><div class="phase-name">Foundation & Form</div><div class="phase-dates">Mar 26 – Apr 20 · 4 weeks</div></div>
+        </div>
+        <div class="week-grid">
+          <div class="day-pill dp-push"><div class="day-dow">MON</div><div class="day-name">Push</div></div>
+          <div class="day-pill dp-cardio"><div class="day-dow">TUE</div><div class="day-name">Cardio</div></div>
+          <div class="day-pill dp-pull"><div class="day-dow">WED</div><div class="day-name">Pull</div></div>
+          <div class="day-pill dp-rest"><div class="day-dow">THU</div><div class="day-name">Rest</div></div>
+          <div class="day-pill dp-core"><div class="day-dow">FRI</div><div class="day-name">Core</div></div>
+          <div class="day-pill dp-rest"><div class="day-dow">SAT</div><div class="day-name">Walk</div></div>
+          <div class="day-pill dp-rest"><div class="day-dow">SUN</div><div class="day-name">Rest</div></div>
+        </div>
+      </div>
+
+      <div class="phase-section">
+        <div class="phase-header">
+          <span class="phase-tag" style="background:rgba(74,240,184,0.12);color:#4af0b8">Phase 2</span>
+          <div><div class="phase-name">Build & Definition</div><div class="phase-dates">Apr 21 – May 25 · 5 weeks</div></div>
+        </div>
+        <div class="week-grid">
+          <div class="day-pill dp-push"><div class="day-dow">MON</div><div class="day-name">Push</div></div>
+          <div class="day-pill dp-pull"><div class="day-dow">TUE</div><div class="day-name">Pull</div></div>
+          <div class="day-pill dp-core"><div class="day-dow">WED</div><div class="day-name">Core</div></div>
+          <div class="day-pill dp-rest"><div class="day-dow">THU</div><div class="day-name">Rest</div></div>
+          <div class="day-pill dp-push"><div class="day-dow">FRI</div><div class="day-name">Push+Abs</div></div>
+          <div class="day-pill dp-pull"><div class="day-dow">SAT</div><div class="day-name">Pull+Abs</div></div>
+          <div class="day-pill dp-rest"><div class="day-dow">SUN</div><div class="day-name">Rest</div></div>
+        </div>
+      </div>
+
+      <div class="phase-section">
+        <div class="phase-header">
+          <span class="phase-tag" style="background:rgba(240,74,138,0.12);color:#f04a8a">Phase 3</span>
+          <div><div class="phase-name">Peak & Polish</div><div class="phase-dates">May 26 – Jun 14 · 3 weeks</div></div>
+        </div>
+        <div class="week-grid">
+          <div class="day-pill dp-push"><div class="day-dow">MON</div><div class="day-name">Push</div></div>
+          <div class="day-pill dp-core"><div class="day-dow">TUE</div><div class="day-name">Core</div></div>
+          <div class="day-pill dp-pull"><div class="day-dow">WED</div><div class="day-name">Pull</div></div>
+          <div class="day-pill dp-core"><div class="day-dow">THU</div><div class="day-name">Core</div></div>
+          <div class="day-pill dp-push"><div class="day-dow">FRI</div><div class="day-name">Full</div></div>
+          <div class="day-pill dp-cardio"><div class="day-dow">SAT</div><div class="day-name">Cardio</div></div>
+          <div class="day-pill dp-rest"><div class="day-dow">SUN</div><div class="day-name">Rest</div></div>
+        </div>
+      </div>
+
+      <div class="section-h">Workout Library</div>
+
+      <div class="card">
+        <div class="card-title" style="color:#7ab4f5">Push Day</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Chest · Shoulders · Triceps · ~60 min</div>
+        <div class="exercise-list">
+          <div class="ex-item"><div class="ex-name">Dumbbell Bench Press</div><div class="ex-note">3×10 → 4×12 · Main chest mover</div></div>
+          <div class="ex-item"><div class="ex-name">Incline Dumbbell Press</div><div class="ex-note">3×10 · Upper chest</div></div>
+          <div class="ex-item"><div class="ex-name">Cable Lateral Raises</div><div class="ex-note">3×15 · Shoulder width — don't skip this</div></div>
+          <div class="ex-item"><div class="ex-name">Overhead Dumbbell Press</div><div class="ex-note">3×10</div></div>
+          <div class="ex-item"><div class="ex-name">Tricep Rope Pushdown</div><div class="ex-note">3×12</div></div>
+          <div class="ex-item"><div class="ex-name">Chest Cable Flyes</div><div class="ex-note">3×15 · Pump finisher</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:#4af0b8">Pull Day</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Back · Biceps · ~60 min</div>
+        <div class="exercise-list">
+          <div class="ex-item"><div class="ex-name">Lat Pulldown</div><div class="ex-note">4×10 · Builds the V-taper</div></div>
+          <div class="ex-item"><div class="ex-name">Seated Cable Row</div><div class="ex-note">3×12</div></div>
+          <div class="ex-item"><div class="ex-name">Dumbbell Row (each side)</div><div class="ex-note">3×10</div></div>
+          <div class="ex-item"><div class="ex-name">Face Pulls</div><div class="ex-note">3×15 · Rear delts + posture</div></div>
+          <div class="ex-item"><div class="ex-name">Dumbbell Curl</div><div class="ex-note">3×12</div></div>
+          <div class="ex-item"><div class="ex-name">Hammer Curl</div><div class="ex-note">3×12 · Brachialis thickness</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:#f04a8a">Core / Ab Circuit</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">3–4 rounds · Minimal rest between exercises</div>
+        <div class="exercise-list">
+          <div class="ex-item"><div class="ex-name">Cable Crunch</div><div class="ex-note">15 reps · Weighted — best for ab thickness</div></div>
+          <div class="ex-item"><div class="ex-name">Hanging Leg Raises</div><div class="ex-note">12 reps · Lower abs</div></div>
+          <div class="ex-item"><div class="ex-name">Plank</div><div class="ex-note">30–60 seconds</div></div>
+          <div class="ex-item"><div class="ex-name">Ab Wheel Rollout</div><div class="ex-note">10 reps</div></div>
+          <div class="ex-item"><div class="ex-name">Bicycle Crunches</div><div class="ex-note">20 reps</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NUTRITION VIEW -->
+    <div id="view-nutrition" class="view">
+      <div class="card">
+        <div class="card-title">Log Food</div>
+        <div class="input-row">
+          <input class="food-input" id="food-name" placeholder="Food item (e.g. chicken breast)" type="text">
+        </div>
+        <div class="input-row">
+          <input class="food-input" id="food-protein" placeholder="Protein (g)" type="number" inputmode="numeric" style="flex:1">
+          <input class="food-input" id="food-carbs" placeholder="Carbs (g)" type="number" inputmode="numeric" style="flex:1">
+          <input class="food-input" id="food-fats" placeholder="Fats (g)" type="number" inputmode="numeric" style="flex:1">
+        </div>
+        <button class="add-btn" onclick="addFood()" style="width:100%">+ Add to Log</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Daily Totals</div>
+        <div class="macro-bar-row">
+          <div class="macro-bar-header"><span style="color:#7ab4f5">Protein</span><span id="n-protein-label">0 / 170g</span></div>
+          <div class="macro-bar-track"><div class="macro-bar-fill" id="n-protein-bar" style="width:0%;background:#7ab4f5"></div></div>
+        </div>
+        <div class="macro-bar-row">
+          <div class="macro-bar-header"><span style="color:#4af0b8">Carbs</span><span id="n-carbs-label">0 / 240g</span></div>
+          <div class="macro-bar-track"><div class="macro-bar-fill" id="n-carbs-bar" style="width:0%;background:#4af0b8"></div></div>
+        </div>
+        <div class="macro-bar-row">
+          <div class="macro-bar-header"><span style="color:#f0a84a">Fats</span><span id="n-fats-label">0 / 70g</span></div>
+          <div class="macro-bar-track"><div class="macro-bar-fill" id="n-fats-bar" style="width:0%;background:#f0a84a"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Today's Food Log</div>
+        <div class="food-log" id="food-log">
+          <div style="font-size:13px;color:var(--muted);text-align:center;padding:12px 0">No food logged yet today</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Target Macros</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7">
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>Protein</span><span style="color:#7ab4f5;font-weight:500">160–180g/day</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>Carbs</span><span style="color:#4af0b8;font-weight:500">220–260g/day</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>Fats</span><span style="color:#f0a84a;font-weight:500">60–80g/day</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0"><span>Water</span><span style="color:var(--accent2);font-weight:500">3–4 L/day</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quick Add — High Protein</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="add-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 12px" onclick="quickAdd('Chicken breast 200g',62,0,6)">Chicken 200g</button>
+          <button class="add-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 12px" onclick="quickAdd('5 Eggs',35,2,25)">5 Eggs</button>
+          <button class="add-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 12px" onclick="quickAdd('Greek yogurt',17,9,0)">Greek Yogurt</button>
+          <button class="add-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 12px" onclick="quickAdd('Protein shake',25,5,2)">Protein Shake</button>
+          <button class="add-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 12px" onclick="quickAdd('Salmon 150g',34,0,13)">Salmon 150g</button>
+          <button class="add-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 12px" onclick="quickAdd('Oats 100g',13,68,7)">Oats 100g</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRESS VIEW -->
+    <div id="view-progress" class="view">
+      <div class="install-banner" id="install-banner">
+        <strong>Add to Home Screen</strong> for the full app experience.<br>
+        In Safari: tap the <strong>Share</strong> button → <strong>Add to Home Screen</strong>
+      </div>
+
+      <div class="streak-banner">
+        <div class="streak-num" id="streak-num">0</div>
+        <div class="streak-label">day workout streak 🔥</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-num" id="stat-workouts">0</div><div class="stat-label">Workouts logged</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-days">0</div><div class="stat-label">Days in</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-left">81</div><div class="stat-label">Days left</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Mark Today as Done</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="add-btn" onclick="markWorkoutDone()" style="flex:1">✓ Workout Complete</button>
+          <button class="add-btn" onclick="markRestDone()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);flex:1">Rest Day</button>
+        </div>
+        <div id="done-msg" style="font-size:12px;color:var(--accent);margin-top:10px;text-align:center;display:none">Logged! Keep going. 💪</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Weekly Check-in</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Rate how this week felt (1 = rough, 5 = crushed it)</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px" id="rating-row">
+          <button class="add-btn" onclick="rate(1)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;padding:0" id="r1">1</button>
+          <button class="add-btn" onclick="rate(2)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;padding:0" id="r2">2</button>
+          <button class="add-btn" onclick="rate(3)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;padding:0" id="r3">3</button>
+          <button class="add-btn" onclick="rate(4)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;padding:0" id="r4">4</button>
+          <button class="add-btn" onclick="rate(5)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;padding:0" id="r5">5</button>
+        </div>
+        <textarea class="notes-area" id="week-notes" placeholder="Any notes for this week? Weight, how workouts felt, diet wins..." rows="3"></textarea>
+        <button class="add-btn" onclick="saveWeekNotes()" style="width:100%;margin-top:8px">Save Check-in</button>
+      </div>
+
+      <div class="card" id="history-card">
+        <div class="card-title">Recent Activity</div>
+        <div id="history-list" style="font-size:13px;color:var(--muted)">No activity logged yet.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-btn active" id="nav-today" onclick="switchTab('today')">
+      <span class="nav-icon">☀️</span>
+      <span class="nav-label">Today</span>
+    </button>
+    <button class="nav-btn" id="nav-schedule" onclick="switchTab('schedule')">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Schedule</span>
+    </button>
+    <button class="nav-btn" id="nav-nutrition" onclick="switchTab('nutrition')">
+      <span class="nav-icon">🥗</span>
+      <span class="nav-label">Nutrition</span>
+    </button>
+    <button class="nav-btn" id="nav-progress" onclick="switchTab('progress')">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Progress</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const START = new Date('2026-03-26');
+const BEACH = new Date('2026-06-15');
+const TOTAL_DAYS = Math.round((BEACH - START) / 86400000);
+
+const WORKOUTS = {
+  push: {
+    label: 'PUSH DAY',
+    desc: 'Chest · Shoulders · Triceps',
+    color: '#7ab4f5',
+    exercises: [
+      { name: 'Dumbbell Bench Press', sets: '3×10' },
+      { name: 'Incline Dumbbell Press', sets: '3×10' },
+      { name: 'Cable Lateral Raises', sets: '3×15' },
+      { name: 'Overhead Dumbbell Press', sets: '3×10' },
+      { name: 'Tricep Rope Pushdown', sets: '3×12' },
+      { name: 'Chest Cable Flyes', sets: '3×15' },
+    ]
+  },
+  pull: {
+    label: 'PULL DAY',
+    desc: 'Back · Biceps',
+    color: '#4af0b8',
+    exercises: [
+      { name: 'Lat Pulldown', sets: '4×10' },
+      { name: 'Seated Cable Row', sets: '3×12' },
+      { name: 'Dumbbell Row', sets: '3×10 each' },
+      { name: 'Face Pulls', sets: '3×15' },
+      { name: 'Dumbbell Curl', sets: '3×12' },
+      { name: 'Hammer Curl', sets: '3×12' },
+    ]
+  },
+  core: {
+    label: 'CORE DAY',
+    desc: 'Abs · Circuit training',
+    color: '#f04a8a',
+    exercises: [
+      { name: 'Cable Crunch', sets: '4×15' },
+      { name: 'Hanging Leg Raises', sets: '4×12' },
+      { name: 'Plank', sets: '3×45s' },
+      { name: 'Ab Wheel Rollout', sets: '3×10' },
+      { name: 'Bicycle Crunches', sets: '3×20' },
+    ]
+  },
+  cardio: {
+    label: 'CARDIO',
+    desc: 'Treadmill · Elliptical · Stairmaster',
+    color: '#e8f04a',
+    exercises: [
+      { name: '5 min warm-up walk', sets: '' },
+      { name: '20 min moderate cardio', sets: '65–75% max HR' },
+      { name: 'Cool down + stretch', sets: '5–10 min' },
+    ]
+  },
+  rest: {
+    label: 'REST DAY',
+    desc: 'Recovery — walk, stretch, sleep, hydrate.',
+    color: '#888780',
+    exercises: []
+  }
+};
+
+// Phase 1: Mon=push, Tue=cardio, Wed=pull, Thu=rest, Fri=core, Sat=rest, Sun=rest
+// Phase 2: Mon=push, Tue=pull, Wed=core, Thu=rest, Fri=push, Sat=pull, Sun=rest
+// Phase 3: Mon=push, Tue=core, Wed=pull, Thu=core, Fri=push, Sat=cardio, Sun=rest
+function getDayWorkout(date) {
+  const d = new Date(date); d.setHours(0,0,0,0);
+  const s = new Date(START); s.setHours(0,0,0,0);
+  const dayNum = Math.round((d - s) / 86400000);
+  const dow = d.getDay(); // 0=sun,1=mon,...,6=sat
+
+  if (dayNum < 0 || dayNum >= TOTAL_DAYS) return WORKOUTS.rest;
+
+  const phase = dayNum < 26 ? 1 : dayNum < 61 ? 2 : 3;
+  const maps = {
+    1: [WORKOUTS.rest, WORKOUTS.push, WORKOUTS.cardio, WORKOUTS.pull, WORKOUTS.rest, WORKOUTS.core, WORKOUTS.rest],
+    2: [WORKOUTS.rest, WORKOUTS.push, WORKOUTS.pull, WORKOUTS.core, WORKOUTS.rest, WORKOUTS.push, WORKOUTS.pull],
+    3: [WORKOUTS.rest, WORKOUTS.push, WORKOUTS.core, WORKOUTS.pull, WORKOUTS.core, WORKOUTS.push, WORKOUTS.cardio]
+  };
+  return maps[phase][dow];
+}
+
+// ── STORAGE ────────────────────────────────────────────────────────────────────
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function save(k,v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function load(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch(e) { return def; } }
+
+let foodLog = load('food_' + todayKey(), []);
+let exChecked = load('ex_' + todayKey(), {});
+let history = load('history', []);
+let weekNotes = load('week_notes', '');
+
+// ── HEADER ─────────────────────────────────────────────────────────────────────
+function updateHeader() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const daysLeft = Math.max(0, Math.ceil((BEACH - today) / 86400000));
+  const dayNum = Math.round((today - START) / 86400000);
+  const phase = dayNum < 26 ? 1 : dayNum < 61 ? 2 : 3;
+  const pct = Math.min(100, Math.round((dayNum / TOTAL_DAYS) * 100));
+
+  document.getElementById('days-pill').textContent = daysLeft + ' days left';
+  document.getElementById('header-sub').textContent = 'Phase ' + phase + ' · Day ' + Math.max(1, dayNum + 1) + ' of ' + TOTAL_DAYS;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('stat-left').textContent = daysLeft;
+  document.getElementById('stat-days').textContent = Math.max(0, dayNum);
+}
+
+// ── TODAY VIEW ─────────────────────────────────────────────────────────────────
+function renderToday() {
+  const w = getDayWorkout(new Date());
+  document.getElementById('today-type').textContent = w.label;
+  document.getElementById('today-type').style.color = w.color;
+  document.getElementById('today-desc').textContent = w.desc;
+
+  const container = document.getElementById('today-exercises');
+  container.innerHTML = '';
+  w.exercises.forEach((ex, i) => {
+    const div = document.createElement('div');
+    div.className = 'exercise-row';
+    const done = exChecked[i];
+    div.innerHTML = `
+      <div><div class="exercise-name">${ex.name}</div><div class="exercise-sets" style="font-size:11px;color:var(--muted)">${ex.sets}</div></div>
+      <button class="exercise-check ${done ? 'done' : ''}" onclick="toggleEx(${i})">${done ? '✓' : ''}</button>
+    `;
+    container.appendChild(div);
+  });
+
+  // Notes
+  const notes = load('notes_' + todayKey(), '');
+  document.getElementById('today-notes').value = notes;
+  document.getElementById('today-notes').oninput = () => {
+    save('notes_' + todayKey(), document.getElementById('today-notes').value);
+  };
+
+  updateMacroBars();
+}
+
+function toggleEx(i) {
+  exChecked[i] = !exChecked[i];
+  save('ex_' + todayKey(), exChecked);
+  renderToday();
+}
+
+// ── NUTRITION ──────────────────────────────────────────────────────────────────
+function getTotals() {
+  return foodLog.reduce((a,f) => ({
+    p: a.p + f.p, c: a.c + f.c, f: a.f + f.f
+  }), { p: 0, c: 0, f: 0 });
+}
+
+function updateMacroBars() {
+  const t = getTotals();
+  const targets = { p: 170, c: 240, f: 70 };
+
+  const setPb = (id, val, target, labelId) => {
+    const pct = Math.min(100, Math.round((val / target) * 100));
+    document.getElementById(id).style.width = pct + '%';
+    if (labelId) document.getElementById(labelId).textContent = Math.round(val) + ' / ' + target + 'g';
+  };
+
+  // Today tab bars
+  setPb('pb-protein', t.p, targets.p, 'pb-label');
+  setPb('pb-carbs', t.c, targets.c, 'pb-carbs-label');
+  setPb('pb-fats', t.f, targets.f, 'pb-fats-label');
+
+  // Nutrition tab bars
+  setPb('n-protein-bar', t.p, targets.p, 'n-protein-label');
+  setPb('n-carbs-bar', t.c, targets.c, 'n-carbs-label');
+  setPb('n-fats-bar', t.f, targets.f, 'n-fats-label');
+}
+
+function renderFoodLog() {
+  const el = document.getElementById('food-log');
+  if (foodLog.length === 0) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:12px 0">No food logged yet today</div>';
+  } else {
+    el.innerHTML = foodLog.map((f, i) => `
+      <div class="food-entry">
+        <div>
+          <div style="font-weight:400">${f.name}</div>
+          <div style="font-size:11px;color:var(--muted)">P: ${f.p}g · C: ${f.c}g · F: ${f.f}g</div>
+        </div>
+        <button class="food-del" onclick="deleteFood(${i})">×</button>
+      </div>
+    `).join('');
+  }
+  updateMacroBars();
+}
+
+function addFood() {
+  const name = document.getElementById('food-name').value.trim() || 'Food item';
+  const p = parseFloat(document.getElementById('food-protein').value) || 0;
+  const c = parseFloat(document.getElementById('food-carbs').value) || 0;
+  const f = parseFloat(document.getElementById('food-fats').value) || 0;
+  foodLog.push({ name, p, c, f });
+  save('food_' + todayKey(), foodLog);
+  document.getElementById('food-name').value = '';
+  document.getElementById('food-protein').value = '';
+  document.getElementById('food-carbs').value = '';
+  document.getElementById('food-fats').value = '';
+  renderFoodLog();
+}
+
+function quickAdd(name, p, c, f) {
+  foodLog.push({ name, p, c, f });
+  save('food_' + todayKey(), foodLog);
+  renderFoodLog();
+}
+
+function deleteFood(i) {
+  foodLog.splice(i, 1);
+  save('food_' + todayKey(), foodLog);
+  renderFoodLog();
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────────
+function renderProgress() {
+  const streak = load('streak', 0);
+  const workouts = load('total_workouts', 0);
+  document.getElementById('streak-num').textContent = streak;
+  document.getElementById('stat-workouts').textContent = workouts;
+  renderHistory();
+
+  const wn = load('week_notes', '');
+  document.getElementById('week-notes').value = wn;
+
+  // Show install banner in Safari
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone;
+  if (isIOS && !isStandalone) document.getElementById('install-banner').classList.add('show');
+}
+
+function markWorkoutDone() {
+  const key = 'done_' + todayKey();
+  if (load(key, false)) return;
+  save(key, true);
+  const streak = load('streak', 0) + 1;
+  save('streak', streak);
+  const total = load('total_workouts', 0) + 1;
+  save('total_workouts', total);
+  const w = getDayWorkout(new Date());
+  history.unshift({ date: todayKey(), type: w.label, label: '✓ Workout' });
+  if (history.length > 20) history.pop();
+  save('history', history);
+  document.getElementById('done-msg').style.display = 'block';
+  renderProgress();
+}
+
+function markRestDone() {
+  const key = 'done_' + todayKey();
+  if (load(key, false)) return;
+  save(key, true);
+  history.unshift({ date: todayKey(), type: 'REST', label: '— Rest day' });
+  if (history.length > 20) history.pop();
+  save('history', history);
+  document.getElementById('done-msg').style.display = 'block';
+  renderProgress();
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (history.length === 0) { el.innerHTML = 'No activity logged yet.'; return; }
+  el.innerHTML = history.slice(0, 7).map(h => `
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+      <span>${h.label} <span style="color:var(--muted)">${h.type}</span></span>
+      <span style="color:var(--muted);font-size:12px">${h.date}</span>
+    </div>
+  `).join('');
+}
+
+function rate(n) {
+  [1,2,3,4,5].forEach(i => {
+    const btn = document.getElementById('r'+i);
+    btn.style.background = i <= n ? 'var(--accent)' : 'var(--bg3)';
+    btn.style.color = i <= n ? '#0a0a0f' : 'var(--text)';
+  });
+  save('week_rating', n);
+}
+
+function saveWeekNotes() {
+  save('week_notes', document.getElementById('week-notes').value);
+  const btn = event.target;
+  btn.textContent = 'Saved ✓';
+  setTimeout(() => btn.textContent = 'Save Check-in', 1500);
+}
+
+// Load saved rating
+const savedRating = load('week_rating', 0);
+if (savedRating) setTimeout(() => rate(savedRating), 100);
+
+// ── NAV ────────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  ['today','schedule','nutrition','progress'].forEach(t => {
+    document.getElementById('view-'+t).classList.toggle('active', t === tab);
+    document.getElementById('nav-'+t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'today') renderToday();
+  if (tab === 'nutrition') renderFoodLog();
+  if (tab === 'progress') renderProgress();
+  document.querySelector('.scroll-area').scrollTop = 0;
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+updateHeader();
+renderToday();
+renderFoodLog();
+</script>
+</body>
+</html>
